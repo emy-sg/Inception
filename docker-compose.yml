@@ -1,0 +1,65 @@
+version: "3"
+
+networks:
+        Docker_network:
+                driver: bridge
+
+volumes:
+        Wordpress:
+                driver: local
+                driver_opts:
+                       o: bind
+                       type: none
+                       device: /home/emy/Desktop/Inception/data/wordpress
+        DB:
+                driver: local
+                driver_opts:
+                       o: bind
+                       type: none
+                       device: /home/emy/Desktop/Inception/data/db
+
+
+
+services:
+        nginx:
+                depends_on:
+                       - wordpress
+                build:
+                       context: nginx/.
+                image: nginx_image
+                container_name: nginx
+                ports:
+                       - "443:443"
+                volumes:
+                       - Wordpress:/var/www/html
+                networks:
+                       - Docker_network
+
+        wordpress:
+                depends_on:
+                       - mariadb
+                build:
+                        context: wordpress/.
+                image: wordpress_image
+                container_name: wordpress
+                #env_file: .env
+                #                ports:
+                #       - "9000:9000"
+                volumes:
+                        - Wordpress:/var/www/html
+  
+                networks:
+                        - Docker_network
+        mariadb:
+                build:
+                        context: mariadb/.
+                image: mariadb_image
+                container_name: mariadb
+                #env_file: .env
+                restart: always
+                #ports:
+                #        - "3306:3306"
+                volumes:
+                        - DB:/var/lib/mysql
+                networks:
+                        - Docker_network
